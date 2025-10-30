@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title data-i18n="app.visitors">Visitors</title>
+	<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+	<header class="topbar" id="navbar"></header>
+	<main class="container">
+		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+			<h2 data-i18n="app.visitors">Visitors</h2>
+			<button id="exportBtn" class="btn secondary" style="display: flex; align-items: center; gap: 6px;">
+				<span>📊</span>
+				<span data-i18n="table.export">Export to Excel</span>
+			</button>
+		</div>
+		<div id="loader" class="loader-container">
+			<div class="loader"></div>
+			<p class="loader-text" data-i18n="table.loading">Loading...</p>
+		</div>
+		<table class="table" id="visitorsTable" style="display: none;">
+			<thead>
+				<tr>
+					<th data-i18n="table.name">Name</th>
+					<th data-i18n="table.academicDegree">Academic Degree</th>
+					<th data-i18n="table.jobPosition">Job Position</th>
+					<th data-i18n="table.contacts">Contacts</th>
+					<th data-i18n="table.photos">Photos</th>
+					<th data-i18n="table.actions">Actions</th>
+				</tr>
+			</thead>
+			<tbody id="visitorsList"></tbody>
+		</table>
+	</main>
+	<script src="/i18n.js"></script>
+	<script src="/layout.js"></script>
+	<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+	<script src="/list.js"></script>
+</body>
+</html>
+
+

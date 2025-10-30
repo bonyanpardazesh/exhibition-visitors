@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title data-i18n="visitor.title">Visitor</title>
+	<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+	<header class="topbar" id="navbar"></header>
+	<main class="container">
+		<form id="visitorForm" class="card minimal">
+			<input type="hidden" id="visitorId" />
+			<label data-i18n="visitor.firstName">First name</label>
+			<input id="firstName" required />
+			<label data-i18n="visitor.lastName">Last name</label>
+			<input id="lastName" required />
+			<label data-i18n="visitor.academicDegree">Academic Degree</label>
+			<input id="academicDegree" />
+			<label data-i18n="visitor.jobPosition">Job Position</label>
+			<input id="jobPosition" />
+			<label data-i18n="visitor.note">Note</label>
+			<textarea id="note" rows="2"></textarea>
+			<section>
+				<h3 data-i18n="visitor.contacts">Contacts</h3>
+				<div id="contacts"></div>
+				<button type="button" id="addContactBtn" class="btn secondary" data-i18n="visitor.addContact">Add Contact</button>
+			</section>
+			<section>
+				<h3 data-i18n="visitor.voice">Voice</h3>
+				<div id="voiceRecorder" class="recorder">
+					<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+						<button type="button" class="btn" id="vrStart"><span>⏺️</span><span data-i18n="recorder.start">Start</span></button>
+						<button type="button" class="btn secondary" id="vrStop" disabled><span>⏹️</span><span data-i18n="recorder.stop">Stop</span></button>
+						<button type="button" class="btn" id="vrPlay" disabled><span>▶️</span><span data-i18n="recorder.play">Play</span></button>
+						<span class="muted" id="vrStatus"></span>
+					</div>
+					<div id="vrProgressWrap" style="margin-top:6px;width:100%;max-width:420px;">
+						<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+							<small class="muted">Recording</small>
+							<small id="vrTime" class="muted">00:00</small>
+						</div>
+						<div style="height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+							<div id="vrProgress" style="height:100%;width:0%;background:#3b82f6;transition:width 0.1s linear;"></div>
+						</div>
+					</div>
+					<audio id="vrAudio" controls style="display:none;margin-top:6px;"></audio>
+				</div>
+				<div id="voiceList" class="voice-list" style="margin-top:8px;"></div>
+			</section>
+			<section>
+				<h3 data-i18n="visitor.photos">Photos</h3>
+				<input type="file" id="photoInput" multiple accept="image/*" />
+				<div id="photoPreview" class="photos"></div>
+			</section>
+			<div class="actions">
+				<button type="submit" class="btn" data-i18n="visitor.save">Save</button>
+				<a class="btn secondary" href="/" data-i18n="visitor.cancel">Cancel</a>
+			</div>
+		</form>
+	</main>
+	<script src="/i18n.js"></script>
+	<script src="/layout.js"></script>
+	<script src="/form.js"></script>
+	</body>
+	</html>
+
+

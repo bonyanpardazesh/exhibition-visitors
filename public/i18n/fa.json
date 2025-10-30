@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "بازدیدکنندگان نمایشگاه",
+    "visitors": "بازدیدکنندگان",
+    "new": "جدید",
+    "logout": "خروج",
+    "welcome": "خوش آمدید",
+    "welcomeMessage": "از تب‌ها برای ایجاد بازدیدکنندگان جدید یا مرور لیست بازدیدکنندگان استفاده کنید.",
+    "createVisitor": "ایجاد بازدیدکننده"
+  },
+  "visitor": {
+    "title": "بازدیدکننده جدید / ویرایش",
+    "firstName": "نام",
+    "lastName": "نام خانوادگی",
+    "academicDegree": "مدرک تحصیلی",
+    "jobPosition": "سمت شغلی",
+    "note": "یادداشت",
+    "contacts": "اطلاعات تماس",
+    "voice": "صدا",
+    "photos": "عکس‌ها",
+    "save": "ذخیره",
+    "cancel": "لغو",
+    "addContact": "افزودن تماس",
+    "remove": "حذف"
+  },
+  "contacts": {
+    "email": "ایمیل",
+    "phone": "تلفن",
+    "address": "آدرس",
+    "website": "وب‌سایت",
+    "value": "مقدار",
+    "label": "برچسب (اختیاری)"
+  },
+  "table": {
+    "name": "نام",
+    "academicDegree": "مدرک تحصیلی",
+    "jobPosition": "سمت شغلی",
+    "contacts": "تماس‌ها",
+    "photos": "عکس‌ها",
+    "actions": "عملیات",
+    "edit": "ویرایش",
+    "delete": "حذف",
+    "export": "خروجی Excel",
+    "loading": "در حال بارگذاری...",
+    "recordVoice": "ضبط صدا"
+  },
+  "recorder": {
+    "start": "شروع",
+    "stop": "توقف",
+    "play": "پخش",
+    "save": "ذخیره"
+  },
+  "login": {
+    "title": "ورود",
+    "username": "نام کاربری",
+    "password": "رمز عبور",
+    "signIn": "ورود",
+    "invalidCredentials": "نام کاربری یا رمز عبور نامعتبر"
+  }
+}

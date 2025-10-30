@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title data-i18n="login.title">Login</title>
+	<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+	<header class="topbar">
+		<div class="container" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+			<h1 data-i18n="login.title">Login</h1>
+			<div class="switch-container" id="switchContainer">
+				<label class="switch">
+					<input type="checkbox" id="langSwitch">
+					<span class="slider"></span>
+				</label>
+				<span class="switch-label" id="switchLabel">EN</span>
+			</div>
+		</div>
+	</header>
+	<main class="container">
+		<form id="loginForm" class="card minimal">
+			<label data-i18n="login.username">Username
+				<input id="username" autocomplete="username" />
+			</label>
+			<label data-i18n="login.password">Password
+				<input id="password" type="password" autocomplete="current-password" />
+			</label>
+			<div class="actions">
+				<button class="btn" type="submit" data-i18n="login.signIn">Sign in</button>
+			</div>
+			<p class="muted" id="error" style="display:none;"></p>
+		</form>
+	</main>
+	<script src="/i18n.js"></script>
+	<script src="/login.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "Exhibition Visitors",
+    "visitors": "Visitors",
+    "new": "New",
+    "logout": "Logout",
+    "welcome": "Welcome",
+    "welcomeMessage": "Use the tabs to create new visitors or browse the visitors list.",
+    "createVisitor": "Create a visitor"
+  },
+  "visitor": {
+    "title": "New / Edit Visitor",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "academicDegree": "Academic Degree",
+    "jobPosition": "Job Position",
+    "note": "Note",
+    "contacts": "Contacts",
+    "voice": "Voice",
+    "photos": "Photos",
+    "save": "Save",
+    "cancel": "Cancel",
+    "addContact": "Add Contact",
+    "remove": "Remove"
+  },
+  "contacts": {
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "website": "Website",
+    "value": "Value",
+    "label": "Label (optional)"
+  },
+  "table": {
+    "name": "Name",
+    "academicDegree": "Academic Degree",
+    "jobPosition": "Job Position",
+    "contacts": "Contacts",
+    "photos": "Photos",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "export": "Export to Excel",
+    "loading": "Loading...",
+    "recordVoice": "Record"
+  },
+  "recorder": {
+    "start": "Start",
+    "stop": "Stop",
+    "play": "Play",
+    "save": "Save"
+  },
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "signIn": "Sign in",
+    "invalidCredentials": "Invalid username or password"
+  }
+}
