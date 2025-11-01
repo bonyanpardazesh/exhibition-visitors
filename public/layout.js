@@ -6,6 +6,10 @@ async function loadNavbar() {
 		const r = await fetch('/partials/navbar.html', { cache: 'no-cache' });
 		const html = await r.text();
 		host.innerHTML = html;
+		// Translate navbar after it's loaded
+		if (window.translateElements) {
+			window.translateElements(host);
+		}
 		// attach logout behavior
 		const logoutBtn = host.querySelector('#logoutBtn');
 		if (logoutBtn) {
@@ -30,11 +34,12 @@ async function loadNavbar() {
 				// notify listeners that user info is ready
 				document.dispatchEvent(new CustomEvent('auth:me', { detail: me || null }));
 				const userEl = host.querySelector('#navbarUser');
+				const userNameEl = host.querySelector('#navbarUserName');
 				const langSwitchContainer = host.querySelector('#langSwitchContainer');
 				if (userEl) {
 					if (me && me.username) {
-						userEl.textContent = me.username;
-						userEl.style.display = '';
+						if (userNameEl) userNameEl.textContent = me.username;
+						userEl.style.display = 'inline-flex';
 						userEl.title = me.username;
 						// Show language switch when user is logged in
 						if (langSwitchContainer) langSwitchContainer.style.display = 'flex';
@@ -61,10 +66,6 @@ async function loadNavbar() {
 function translateElements(container = document) {
 	const elements = container.querySelectorAll('[data-i18n]');
 	elements.forEach(el => {
-		// Skip navbar elements - exclude from translation
-		if (el.closest('#navbar')) {
-			return;
-		}
 		const key = el.getAttribute('data-i18n');
 		if (window.t && key) {
 			el.textContent = window.t(key);
@@ -75,6 +76,11 @@ function translateElements(container = document) {
 // Listen for language changes
 document.addEventListener('langChanged', () => {
 	translateElements();
+	// Also translate navbar if it exists
+	const navbar = document.getElementById('navbar');
+	if (navbar && window.translateElements) {
+		window.translateElements(navbar);
+	}
 });
 
 function initializeLanguageSwitch(host) {

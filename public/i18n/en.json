@@ -1,27 +1,48 @@
 {
   "app": {
     "title": "Exhibition Visitors",
+    "home": "Home",
     "visitors": "Visitors",
-    "new": "New",
+    "new": "New Visitor",
     "logout": "Logout",
-    "welcome": "Welcome",
-    "welcomeMessage": "Use the tabs to create new visitors or browse the visitors list.",
-    "createVisitor": "Create a visitor"
+    "welcome": "Welcome to Exhibition Visitors",
+    "welcomeMessage": "Manage your exhibition visitors efficiently. Create visitor profiles, capture photos, record voice notes, and export data seamlessly.",
+    "createVisitor": "Create New Visitor",
+    "viewAll": "View All Visitors",
+    "visitorsDescription": "Manage and view all registered visitors",
+    "featureProfiles": "Visitor Profiles",
+    "featureProfilesDesc": "Create detailed profiles with contact information, photos, and voice recordings.",
+    "featureNotifications": "Auto Notifications",
+    "featureNotificationsDesc": "Automatically send welcome SMS and emails to registered visitors.",
+    "featureExport": "Export Data",
+    "featureExportDesc": "Export visitor data to Excel for reports and analysis."
   },
   "visitor": {
-    "title": "New / Edit Visitor",
+    "title": "Visitor Information",
+    "subtitle": "Fill in the visitor details below",
     "firstName": "First name",
     "lastName": "Last name",
     "academicDegree": "Academic Degree",
     "jobPosition": "Job Position",
     "note": "Note",
     "contacts": "Contacts",
-    "voice": "Voice",
+    "contactsDesc": "Add contact information",
+    "voice": "Voice Recording",
+    "voiceDesc": "Record or upload voice notes",
     "photos": "Photos",
-    "save": "Save",
+    "photosDesc": "Upload visitor photos",
+    "save": "Save Visitor",
     "cancel": "Cancel",
     "addContact": "Add Contact",
-    "remove": "Remove"
+    "remove": "Remove",
+    "placeholderFirstName": "Enter first name",
+    "placeholderLastName": "Enter last name",
+    "placeholderDegree": "e.g., Bachelor, Master, PhD",
+    "placeholderPosition": "e.g., Manager, Engineer",
+    "placeholderNote": "Additional notes about the visitor...",
+    "placeholderPhotoUpload": "Click to upload photos",
+    "placeholderPhotoFormat": "PNG, JPG up to 10MB",
+    "recordingProgress": "Recording Progress"
   },
   "contacts": {
     "email": "Email",
@@ -41,20 +62,23 @@
     "edit": "Edit",
     "delete": "Delete",
     "export": "Export to Excel",
-    "loading": "Loading...",
+    "loading": "Loading visitors...",
     "recordVoice": "Record"
   },
   "recorder": {
-    "start": "Start",
+    "start": "Start Recording",
     "stop": "Stop",
     "play": "Play",
     "save": "Save"
   },
   "login": {
-    "title": "Login",
+    "title": "Exhibition Visitors",
+    "subtitle": "Sign in to your account",
     "username": "Username",
     "password": "Password",
     "signIn": "Sign in",
-    "invalidCredentials": "Invalid username or password"
+    "invalidCredentials": "Invalid username or password",
+    "placeholderUsername": "Enter your username",
+    "placeholderPassword": "Enter your password"
   }
 }

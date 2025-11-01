@@ -421,9 +421,10 @@ app.get('/api/email/test', requireAuth, async (req, res) => {
 // Serve frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-	console.log(`\n🚀 Server listening on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 2030;
+app.listen(PORT, '0.0.0.0', () => {
+	console.log(`\n🚀 Server listening on http://0.0.0.0:${PORT}`);
+	console.log(`🌐 Accessible from network at: http://<your-ip>:${PORT}`);
 	console.log('📧 Email functionality enabled');
 	console.log('📱 SMS functionality enabled');
 	console.log('\n⚠️  Configure credentials in config.env for full functionality\n');

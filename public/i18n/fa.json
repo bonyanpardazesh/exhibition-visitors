@@ -1,27 +1,48 @@
 {
   "app": {
     "title": "بازدیدکنندگان نمایشگاه",
+    "home": "خانه",
     "visitors": "بازدیدکنندگان",
-    "new": "جدید",
+    "new": "بازدیدکننده جدید",
     "logout": "خروج",
-    "welcome": "خوش آمدید",
-    "welcomeMessage": "از تب‌ها برای ایجاد بازدیدکنندگان جدید یا مرور لیست بازدیدکنندگان استفاده کنید.",
-    "createVisitor": "ایجاد بازدیدکننده"
+    "welcome": "به سامانه بازدیدکنندگان نمایشگاه خوش آمدید",
+    "welcomeMessage": "مدیریت کارآمد بازدیدکنندگان نمایشگاه. ایجاد پروفایل، ثبت عکس و صدا، و خروجی داده‌ها.",
+    "createVisitor": "ایجاد بازدیدکننده جدید",
+    "viewAll": "مشاهده همه بازدیدکنندگان",
+    "visitorsDescription": "مدیریت و مشاهده تمام بازدیدکنندگان ثبت‌شده",
+    "featureProfiles": "پروفایل بازدیدکنندگان",
+    "featureProfilesDesc": "ایجاد پروفایل‌های کامل با اطلاعات تماس، عکس و ضبط صدا.",
+    "featureNotifications": "اطلاع‌رسانی خودکار",
+    "featureNotificationsDesc": "ارسال خودکار پیامک و ایمیل خوش‌آمدگویی به بازدیدکنندگان ثبت‌شده.",
+    "featureExport": "خروجی داده‌ها",
+    "featureExportDesc": "خروجی داده‌های بازدیدکنندگان به Excel برای گزارش و تحلیل."
   },
   "visitor": {
-    "title": "بازدیدکننده جدید / ویرایش",
+    "title": "اطلاعات بازدیدکننده",
+    "subtitle": "اطلاعات بازدیدکننده را در زیر تکمیل کنید",
     "firstName": "نام",
     "lastName": "نام خانوادگی",
     "academicDegree": "مدرک تحصیلی",
     "jobPosition": "سمت شغلی",
     "note": "یادداشت",
     "contacts": "اطلاعات تماس",
-    "voice": "صدا",
+    "contactsDesc": "افزودن اطلاعات تماس",
+    "voice": "ضبط صدا",
+    "voiceDesc": "ضبط یا آپلود یادداشت صوتی",
     "photos": "عکس‌ها",
-    "save": "ذخیره",
+    "photosDesc": "آپلود عکس بازدیدکننده",
+    "save": "ذخیره بازدیدکننده",
     "cancel": "لغو",
     "addContact": "افزودن تماس",
-    "remove": "حذف"
+    "remove": "حذف",
+    "placeholderFirstName": "نام را وارد کنید",
+    "placeholderLastName": "نام خانوادگی را وارد کنید",
+    "placeholderDegree": "مثال: لیسانس، فوق‌لیسانس، دکترا",
+    "placeholderPosition": "مثال: مدیر، مهندس",
+    "placeholderNote": "یادداشت‌های اضافی درباره بازدیدکننده...",
+    "placeholderPhotoUpload": "برای آپلود عکس کلیک کنید",
+    "placeholderPhotoFormat": "PNG، JPG حداکثر 10 مگابایت",
+    "recordingProgress": "پیشرفت ضبط"
   },
   "contacts": {
     "email": "ایمیل",
@@ -41,20 +62,23 @@
     "edit": "ویرایش",
     "delete": "حذف",
     "export": "خروجی Excel",
-    "loading": "در حال بارگذاری...",
+    "loading": "در حال بارگذاری بازدیدکنندگان...",
     "recordVoice": "ضبط صدا"
   },
   "recorder": {
-    "start": "شروع",
+    "start": "شروع ضبط",
     "stop": "توقف",
     "play": "پخش",
     "save": "ذخیره"
   },
   "login": {
-    "title": "ورود",
+    "title": "بازدیدکنندگان نمایشگاه",
+    "subtitle": "به حساب کاربری خود وارد شوید",
     "username": "نام کاربری",
     "password": "رمز عبور",
     "signIn": "ورود",
-    "invalidCredentials": "نام کاربری یا رمز عبور نامعتبر"
+    "invalidCredentials": "نام کاربری یا رمز عبور نامعتبر",
+    "placeholderUsername": "نام کاربری خود را وارد کنید",
+    "placeholderPassword": "رمز عبور خود را وارد کنید"
   }
 }

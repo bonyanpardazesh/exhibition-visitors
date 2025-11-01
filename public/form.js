@@ -91,14 +91,18 @@ function contactRow(data = { type: 'email', value: '', label: '' }) {
 	div.className = 'contact-row';
 	div.innerHTML = `
 		<select class="c-type">
-			<option value="email" ${data.type==='email'?'selected':''}>Email</option>
-			<option value="phone" ${data.type==='phone'?'selected':''}>Phone</option>
-			<option value="address" ${data.type==='address'?'selected':''}>Address</option>
-			<option value="website" ${data.type==='website'?'selected':''}>Website</option>
+			<option value="email" ${data.type==='email'?'selected':''}>📧 Email</option>
+			<option value="phone" ${data.type==='phone'?'selected':''}>📞 Phone</option>
+			<option value="address" ${data.type==='address'?'selected':''}>📍 Address</option>
+			<option value="website" ${data.type==='website'?'selected':''}>🌐 Website</option>
 		</select>
-		<input class="c-value" placeholder="Value" value="${data.value||''}" />
-		<input class="c-label" placeholder="Label (optional)" value="${data.label||''}" />
-		<button type="button" class="btn btn-remove remove"><span class="btn-icon">❌</span></button>
+		<input class="c-value" data-placeholder="contacts.value" value="${data.value||''}" />
+		<input class="c-label" data-placeholder="contacts.label" value="${data.label||''}" />
+		<button type="button" class="btn btn-remove remove" title="Remove contact" aria-label="Remove contact">
+			<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<path d="M6 18L18 6M6 6l12 12"/>
+			</svg>
+		</button>
 	`;
 	
 	// Add real-time validation to contact value input

@@ -12,6 +12,9 @@ async function loadTranslations(lang) {
 		document.documentElement.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
 		document.documentElement.setAttribute('lang', lang);
 		
+		// Translate all elements immediately
+		translateElements();
+		
 		// Trigger translation update event
 		document.dispatchEvent(new CustomEvent('langChanged', { detail: { lang, translations } }));
 	} catch (error) {
@@ -28,7 +31,11 @@ function t(key) {
 	return value || key;
 }
 
+// Expose t function globally
+window.t = t;
+
 function translateElements(container = document) {
+	// Translate text content
 	const elements = container.querySelectorAll('[data-i18n]');
 	elements.forEach(el => {
 		const key = el.getAttribute('data-i18n');
@@ -36,7 +43,19 @@ function translateElements(container = document) {
 			el.textContent = window.t(key);
 		}
 	});
+	
+	// Translate placeholders
+	const placeholderElements = container.querySelectorAll('[data-placeholder]');
+	placeholderElements.forEach(el => {
+		const key = el.getAttribute('data-placeholder');
+		if (window.t && key) {
+			el.placeholder = window.t(key);
+		}
+	});
 }
+
+// Expose translateElements globally
+window.translateElements = translateElements;
 
 // Initialize translations
 loadTranslations(currentLang);
