@@ -35,17 +35,35 @@ async function loadNavbar() {
 				document.dispatchEvent(new CustomEvent('auth:me', { detail: me || null }));
 				const userEl = host.querySelector('#navbarUser');
 				const userNameEl = host.querySelector('#navbarUserName');
+				const usersBadge = host.querySelector('#navbarUsersBadge');
 				const langSwitchContainer = host.querySelector('#langSwitchContainer');
+				const usersTab = host.querySelector('#usersTab');
 				if (userEl) {
 					if (me && me.username) {
 						if (userNameEl) userNameEl.textContent = me.username;
 						userEl.style.display = 'inline-flex';
 						userEl.title = me.username;
+						// Username badge always links to profile
+						userEl.href = '/profile.html';
 						// Show language switch when user is logged in
 						if (langSwitchContainer) langSwitchContainer.style.display = 'flex';
+						// Show Users tab for admin users
+						if (usersTab && me.role === 'admin') {
+							usersTab.style.display = 'inline-flex';
+						}
+						// Show Users badge for admin users
+						if (usersBadge && me.role === 'admin') {
+							usersBadge.style.display = 'inline-flex';
+							// Translate the badge
+							if (window.translateElements) {
+								window.translateElements(usersBadge);
+							}
+						}
 					} else {
 						userEl.style.display = 'none';
 						if (langSwitchContainer) langSwitchContainer.style.display = 'none';
+						if (usersTab) usersTab.style.display = 'none';
+						if (usersBadge) usersBadge.style.display = 'none';
 					}
 				}
 			}

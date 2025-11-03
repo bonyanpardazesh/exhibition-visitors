@@ -3,6 +3,20 @@ async function listVisitors() {
 	return r.json();
 }
 
+// Check if current user is admin
+let isAdmin = false;
+async function checkAdminStatus() {
+	try {
+		const res = await fetch('/api/me');
+		if (res.ok) {
+			const user = await res.json();
+			isAdmin = user && user.role === 'admin';
+		}
+	} catch (e) {
+		console.error('Failed to check admin status', e);
+	}
+}
+
 function renderRow(v) {
     const tr = document.createElement('tr');
     const contactIcons = {
@@ -21,6 +35,15 @@ function renderRow(v) {
     if (v.is_trader === 1) businessTypes.push('Trader');
     if (v.is_distributor === 1) businessTypes.push('Distributor');
     const businessTypeDisplay = businessTypes.length > 0 ? businessTypes.join(', ') : '-';
+    const creatorBadge = isAdmin && v.created_by_username 
+        ? `<span class="badge creator-badge" style="font-size: var(--font-size-xs); padding: var(--space-1) var(--space-2); margin-bottom: var(--space-2); display: none; background: var(--color-gray-100); color: var(--text-secondary);">👤 ${escapeHtml(v.created_by_username)}</span>` 
+        : '';
+    
+    // Add hover class to row if admin and has creator username
+    if (isAdmin && v.created_by_username) {
+        tr.classList.add('visitor-row-with-creator');
+    }
+    
     tr.innerHTML = `
         <td>
             <div style="font-weight:var(--font-weight-semibold); color: var(--text-primary);">${v.first_name} ${v.last_name}</div>
@@ -32,7 +55,8 @@ function renderRow(v) {
         <td><span class="text-secondary">${v.field_of_activity || '-'}</span></td>
         <td><div class="contacts-container">${contacts || '<span class="text-muted">-</span>'}</div></td>
         <td><div style="display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;">${photos}${photoCount}</div></td>
-        <td>
+        <td class="actions-cell">
+            ${creatorBadge ? `<div style="margin-bottom: var(--space-2);">${creatorBadge}</div>` : ''}
             <div class="actions">
                 <a class="btn btn-edit" href="/visitor.html?id=${v.id}">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -57,6 +81,13 @@ function renderRow(v) {
     }
     
     return tr;
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+	const div = document.createElement('div');
+	div.textContent = text;
+	return div.innerHTML;
 }
 
 async function exportToExcel() {
@@ -187,6 +218,9 @@ async function load() {
 	container.innerHTML = '';
 	
 	try {
+		// Check admin status first
+		await checkAdminStatus();
+		
 		const r = await fetch('/api/visitors');
 		if (r.status === 401) { location.href = '/login.html'; return; }
 		const visitors = await r.json();

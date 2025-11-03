@@ -56,8 +56,14 @@ await db.migrate();
 const existingAdmin = await db.getUserByUsername('admin');
 if (!existingAdmin) {
 	const hash = await bcrypt.hash('admin123', 10);
-	await db.createUser('admin', hash);
-	console.log('Seeded default admin: admin / admin123');
+	await db.createUser('admin', hash, 'admin');
+	console.log('Seeded default admin: admin / admin123 (role: admin)');
+} else {
+	// Ensure existing admin user has admin role
+	if (existingAdmin.role !== 'admin') {
+		await db.updateUserRole(existingAdmin.id, 'admin');
+		console.log('Updated existing admin user to have admin role');
+	}
 }
 
 // Health
@@ -67,6 +73,17 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 function requireAuth(req, res, next) {
 	if (req.session && req.session.userId) return next();
 	return res.status(401).json({ error: 'Unauthorized' });
+}
+
+async function requireAdmin(req, res, next) {
+	if (!req.session || !req.session.userId) {
+		return res.status(401).json({ error: 'Unauthorized' });
+	}
+	const user = await db.getUserById(req.session.userId);
+	if (!user || user.role !== 'admin') {
+		return res.status(403).json({ error: 'Forbidden: Admin access required' });
+	}
+	next();
 }
 
 app.post('/api/login', async (req, res) => {
@@ -88,6 +105,76 @@ app.get('/api/me', async (req, res) => {
 	if (!req.session || !req.session.userId) return res.status(200).json(null);
 	const user = await db.getUserById(req.session.userId);
 	res.json(user || null);
+});
+
+// User management endpoints (admin only)
+app.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
+	try {
+		const users = await db.listUsers();
+		res.json(users);
+	} catch (e) {
+		res.status(500).json({ error: e.message });
+	}
+});
+
+app.post('/api/users', requireAuth, requireAdmin, async (req, res) => {
+	try {
+		const { username, password, role } = req.body || {};
+		if (!username || !password) {
+			return res.status(400).json({ error: 'Username and password are required' });
+		}
+		if (password.length < 6) {
+			return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+		}
+		if (role && !['admin', 'user'].includes(role)) {
+			return res.status(400).json({ error: 'Invalid role. Must be "admin" or "user"' });
+		}
+		
+		// Check if username already exists
+		const existingUser = await db.getUserByUsername(username);
+		if (existingUser) {
+			return res.status(400).json({ error: 'Username already exists' });
+		}
+		
+		const passwordHash = await bcrypt.hash(password, 10);
+		const userRole = role || 'user';
+		const newUser = await db.createUser(username, passwordHash, userRole);
+		res.status(201).json(newUser);
+	} catch (e) {
+		res.status(400).json({ error: e.message });
+	}
+});
+
+app.put('/api/users/:id/role', requireAuth, requireAdmin, async (req, res) => {
+	try {
+		const { role } = req.body || {};
+		if (!role || !['admin', 'user'].includes(role)) {
+			return res.status(400).json({ error: 'Invalid role. Must be "admin" or "user"' });
+		}
+		const userId = Number(req.params.id);
+		if (userId === req.session.userId) {
+			return res.status(400).json({ error: 'Cannot change your own role' });
+		}
+		const updated = await db.updateUserRole(userId, role);
+		res.json(updated);
+	} catch (e) {
+		res.status(400).json({ error: e.message });
+	}
+});
+
+app.post('/api/users/:id/password', requireAuth, requireAdmin, async (req, res) => {
+	try {
+		const { password } = req.body || {};
+		if (!password || password.length < 6) {
+			return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+		}
+		const userId = Number(req.params.id);
+		const newPasswordHash = await bcrypt.hash(password, 10);
+		await db.setUserPassword(userId, newPasswordHash);
+		res.json({ success: true, message: 'Password updated successfully' });
+	} catch (e) {
+		res.status(400).json({ error: e.message });
+	}
 });
 
 app.post('/api/change-password', requireAuth, async (req, res) => {
@@ -145,28 +232,80 @@ function validateVisitorPayload(body, { isUpdate = false } = {}){
 		if (val.length === 0) return '';
 		return val.slice(0, max);
 	}
+	function takeBoolean(field){
+		if (body[field] === undefined) return undefined;
+		return Boolean(body[field]);
+	}
 	const firstName = takeString('first_name', 100);
 	const lastName = takeString('last_name', 100);
-	const academicDegree = takeString('academic_degree', 100);
+	const companyName = takeString('company_name', 100);
 	const jobPosition = takeString('job_position', 100);
+	const fieldOfActivity = takeString('field_of_activity', 200);
+	const answer1 = takeString('answer1', 500);
+	const answer3 = takeString('answer3', 500);
 	const note = takeString('note', 500);
+	
+	// Boolean fields
+	const isManufacturer = takeBoolean('is_manufacturer');
+	const isTrader = takeBoolean('is_trader');
+	const isDistributor = takeBoolean('is_distributor');
+	const unsaturatedPolyester = takeBoolean('unsaturated_polyester');
+	const alkydResinLong = takeBoolean('alkyd_resin_long');
+	const alkydResinMedium = takeBoolean('alkyd_resin_medium');
+	const alkydResinShort = takeBoolean('alkyd_resin_short');
+	const dryingAgent = takeBoolean('drying_agent');
+	const answer2 = takeBoolean('answer2');
+	
 	if (!isUpdate) {
 		if (!firstName) errors.push('first_name is required');
 		if (!lastName) errors.push('last_name is required');
 	}
 	if (firstName !== undefined) sanitized.first_name = firstName;
 	if (lastName !== undefined) sanitized.last_name = lastName;
+	
 	// Always include optional fields (for creates, set to null if not provided)
-	if (academicDegree !== undefined) {
-		sanitized.academic_degree = academicDegree || null;
+	if (companyName !== undefined) {
+		sanitized.company_name = companyName || null;
 	} else if (!isUpdate) {
-		sanitized.academic_degree = null;
+		sanitized.company_name = null;
 	}
 	if (jobPosition !== undefined) {
 		sanitized.job_position = jobPosition || null;
 	} else if (!isUpdate) {
 		sanitized.job_position = null;
 	}
+	if (fieldOfActivity !== undefined) {
+		sanitized.field_of_activity = fieldOfActivity || null;
+	} else if (!isUpdate) {
+		sanitized.field_of_activity = null;
+	}
+	
+	// Boolean checkbox fields
+	if (isManufacturer !== undefined) sanitized.is_manufacturer = isManufacturer;
+	else if (!isUpdate) sanitized.is_manufacturer = false;
+	if (isTrader !== undefined) sanitized.is_trader = isTrader;
+	else if (!isUpdate) sanitized.is_trader = false;
+	if (isDistributor !== undefined) sanitized.is_distributor = isDistributor;
+	else if (!isUpdate) sanitized.is_distributor = false;
+	if (unsaturatedPolyester !== undefined) sanitized.unsaturated_polyester = unsaturatedPolyester;
+	else if (!isUpdate) sanitized.unsaturated_polyester = false;
+	if (alkydResinLong !== undefined) sanitized.alkyd_resin_long = alkydResinLong;
+	else if (!isUpdate) sanitized.alkyd_resin_long = false;
+	if (alkydResinMedium !== undefined) sanitized.alkyd_resin_medium = alkydResinMedium;
+	else if (!isUpdate) sanitized.alkyd_resin_medium = false;
+	if (alkydResinShort !== undefined) sanitized.alkyd_resin_short = alkydResinShort;
+	else if (!isUpdate) sanitized.alkyd_resin_short = false;
+	if (dryingAgent !== undefined) sanitized.drying_agent = dryingAgent;
+	else if (!isUpdate) sanitized.drying_agent = false;
+	if (answer2 !== undefined) sanitized.answer2 = answer2;
+	else if (!isUpdate) sanitized.answer2 = false;
+	
+	// Answer fields
+	if (answer1 !== undefined) sanitized.answer1 = answer1 || null;
+	else if (!isUpdate) sanitized.answer1 = null;
+	if (answer3 !== undefined) sanitized.answer3 = answer3 || null;
+	else if (!isUpdate) sanitized.answer3 = null;
+	
 	if (note !== undefined) sanitized.note = note || null;
 
 	let contacts = body.contacts;
@@ -196,7 +335,9 @@ function validateVisitorPayload(body, { isUpdate = false } = {}){
 // Visitors CRUD
 app.get('/api/visitors', requireAuth, async (req, res) => {
 	try {
-		const visitors = await db.listVisitors();
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		const visitors = await db.listVisitors(req.session.userId, isAdmin);
 		res.json(visitors);
 	} catch (e) {
 		res.status(500).json({ error: e.message });
@@ -205,7 +346,9 @@ app.get('/api/visitors', requireAuth, async (req, res) => {
 
 app.get('/api/visitors/:id', requireAuth, async (req, res) => {
 	try {
-		const visitor = await db.getVisitor(Number(req.params.id));
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		const visitor = await db.getVisitor(Number(req.params.id), req.session.userId, isAdmin);
 		if (!visitor) return res.status(404).json({ error: 'Not found' });
 		res.json(visitor);
 	} catch (e) {
@@ -218,7 +361,7 @@ app.post('/api/visitors', requireAuth, async (req, res) => {
 		const { ok, errors, data } = validateVisitorPayload(req.body, { isUpdate: false });
 		if (!ok) return res.status(400).json({ error: 'Validation failed', details: errors });
 		
-		const created = await db.createVisitor(data);
+		const created = await db.createVisitor(data, req.session.userId);
 		
 		// Send SMS if visitor has a phone number
 		const contacts = created.contacts || [];
@@ -289,7 +432,9 @@ app.put('/api/visitors/:id', requireAuth, async (req, res) => {
 	try {
 		const { ok, errors, data } = validateVisitorPayload(req.body, { isUpdate: true });
 		if (!ok) return res.status(400).json({ error: 'Validation failed', details: errors });
-		const updated = await db.updateVisitor(Number(req.params.id), data);
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		const updated = await db.updateVisitor(Number(req.params.id), data, req.session.userId, isAdmin);
 		res.json(updated);
 	} catch (e) {
 		res.status(400).json({ error: e.message });
@@ -298,7 +443,9 @@ app.put('/api/visitors/:id', requireAuth, async (req, res) => {
 
 app.delete('/api/visitors/:id', requireAuth, async (req, res) => {
 	try {
-		await db.deleteVisitor(Number(req.params.id));
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		await db.deleteVisitor(Number(req.params.id), req.session.userId, isAdmin);
 		res.status(204).end();
 	} catch (e) {
 		res.status(400).json({ error: e.message });
@@ -308,6 +455,11 @@ app.delete('/api/visitors/:id', requireAuth, async (req, res) => {
 // Contacts CRUD (scoped to visitor)
 app.post('/api/visitors/:id/contacts', requireAuth, async (req, res) => {
 	try {
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		// Verify access to visitor
+		const visitor = await db.getVisitor(Number(req.params.id), req.session.userId, isAdmin);
+		if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
 		const contact = await db.addContact(Number(req.params.id), req.body);
 		res.status(201).json(contact);
 	} catch (e) {
@@ -317,8 +469,15 @@ app.post('/api/visitors/:id/contacts', requireAuth, async (req, res) => {
 
 app.put('/api/contacts/:contactId', requireAuth, async (req, res) => {
 	try {
-		const contact = await db.updateContact(Number(req.params.contactId), req.body);
-		res.json(contact);
+		// Check access via visitor ownership
+		const contact = await db.getContact(Number(req.params.contactId));
+		if (!contact) return res.status(404).json({ error: 'Contact not found' });
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		const visitor = await db.getVisitor(contact.visitor_id, req.session.userId, isAdmin);
+		if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
+		const updated = await db.updateContact(Number(req.params.contactId), req.body);
+		res.json(updated);
 	} catch (e) {
 		res.status(400).json({ error: e.message });
 	}
@@ -326,6 +485,13 @@ app.put('/api/contacts/:contactId', requireAuth, async (req, res) => {
 
 app.delete('/api/contacts/:contactId', requireAuth, async (req, res) => {
 	try {
+		// Check access via visitor ownership
+		const contact = await db.getContact(Number(req.params.contactId));
+		if (!contact) return res.status(404).json({ error: 'Contact not found' });
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		const visitor = await db.getVisitor(contact.visitor_id, req.session.userId, isAdmin);
+		if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
 		await db.deleteContact(Number(req.params.contactId));
 		res.status(204).end();
 	} catch (e) {
@@ -336,6 +502,11 @@ app.delete('/api/contacts/:contactId', requireAuth, async (req, res) => {
 // Photos upload and management
 app.post('/api/visitors/:id/photos', requireAuth, upload.array('photos', 10), async (req, res) => {
 	try {
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		// Verify access to visitor
+		const visitor = await db.getVisitor(Number(req.params.id), req.session.userId, isAdmin);
+		if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
 		const files = req.files || [];
 		const records = await db.addPhotos(Number(req.params.id), files.map(f => ({
 			filename: f.filename,
@@ -352,6 +523,11 @@ app.delete('/api/photos/:photoId', requireAuth, async (req, res) => {
 	try {
 		const photo = await db.getPhoto(Number(req.params.photoId));
 		if (!photo) return res.status(404).json({ error: 'Not found' });
+		const user = await db.getUserById(req.session.userId);
+		const isAdmin = user && user.role === 'admin';
+		// Verify access to visitor
+		const visitor = await db.getVisitor(photo.visitor_id, req.session.userId, isAdmin);
+		if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
 		// Soft delete only; keep file on disk
 		await db.deletePhoto(photo.id);
 		res.status(204).end();
@@ -363,6 +539,11 @@ app.delete('/api/photos/:photoId', requireAuth, async (req, res) => {
 // Voice upload and management
 app.post('/api/visitors/:id/voice', requireAuth, upload.single('voice'), async (req, res) => {
     try {
+        const user = await db.getUserById(req.session.userId);
+        const isAdmin = user && user.role === 'admin';
+        // Verify access to visitor
+        const visitor = await db.getVisitor(Number(req.params.id), req.session.userId, isAdmin);
+        if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
         const file = req.file;
         if (!file) return res.status(400).json({ error: 'No voice file uploaded' });
         const durationMs = Number(req.body.durationMs) || null;
@@ -380,6 +561,13 @@ app.post('/api/visitors/:id/voice', requireAuth, upload.single('voice'), async (
 
 app.delete('/api/voices/:voiceId', requireAuth, async (req, res) => {
     try {
+        const voice = await db.getVoice(Number(req.params.voiceId));
+        if (!voice) return res.status(404).json({ error: 'Not found' });
+        const user = await db.getUserById(req.session.userId);
+        const isAdmin = user && user.role === 'admin';
+        // Verify access to visitor
+        const visitor = await db.getVisitor(voice.visitor_id, req.session.userId, isAdmin);
+        if (!visitor) return res.status(404).json({ error: 'Visitor not found' });
         await db.deleteVoice(Number(req.params.voiceId));
         res.status(204).end();
     } catch (e) {

@@ -1,3 +1,5 @@
+let currentUser = null;
+
 // Load user information
 async function loadUserInfo() {
 	try {
@@ -5,10 +7,12 @@ async function loadUserInfo() {
 		if (res.ok) {
 			const user = await res.json();
 			if (user && user.username) {
+				currentUser = user;
 				const usernameEl = document.getElementById('profileUsername');
 				if (usernameEl) {
 					usernameEl.textContent = user.username;
 				}
+				
 			} else {
 				// Not logged in, redirect to login
 				location.href = '/login.html';
@@ -21,7 +25,6 @@ async function loadUserInfo() {
 		location.href = '/login.html';
 	}
 }
-
 // Initialize password change form handler
 function initializePasswordChange() {
 	const changePasswordForm = document.getElementById('changePasswordForm');
@@ -137,6 +140,7 @@ function initializePasswordChange() {
 		}
 	});
 }
+
 
 // Initialize when DOM is ready
 function initialize() {

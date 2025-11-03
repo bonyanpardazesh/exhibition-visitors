@@ -15,6 +15,7 @@ export class Database {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				username TEXT UNIQUE NOT NULL,
 				password_hash TEXT NOT NULL,
+				role TEXT DEFAULT 'user',
 				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				deleted_at DATETIME
 			);
@@ -37,9 +38,11 @@ export class Database {
 				answer2 INTEGER DEFAULT 0,
 				answer3 TEXT,
 				note TEXT,
+				created_by INTEGER,
 				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				deleted_at DATETIME
+				deleted_at DATETIME,
+				FOREIGN KEY(created_by) REFERENCES users(id)
 			);
 
 			CREATE TABLE IF NOT EXISTS contacts (
@@ -79,6 +82,16 @@ export class Database {
 		await db.exec(`
 			ALTER TABLE users ADD COLUMN deleted_at DATETIME;
 		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user';
+		`).catch(()=>{});
+		// Update existing users without role to 'admin' if they're the first user (backward compatibility)
+		try {
+			const existingUsers = await db.all(`SELECT id FROM users WHERE role IS NULL LIMIT 1`);
+			if (existingUsers.length > 0) {
+				await db.exec(`UPDATE users SET role = 'admin' WHERE role IS NULL`);
+			}
+		} catch(e) {}
 		await db.exec(`
 			ALTER TABLE visitors ADD COLUMN deleted_at DATETIME;
 		`).catch(()=>{});
@@ -170,6 +183,9 @@ export class Database {
 		await db.exec(`
 			ALTER TABLE visitors ADD COLUMN answer3 TEXT;
 		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN created_by INTEGER;
+		`).catch(()=>{});
 	}
 
 	async getUserByUsername(username) {
@@ -179,19 +195,58 @@ export class Database {
 
 	async getUserById(id) {
 		const db = await this.dbPromise;
-		return db.get(`SELECT id, username, created_at FROM users WHERE id = ? AND deleted_at IS NULL`, id);
+		return db.get(`SELECT id, username, role, created_at FROM users WHERE id = ? AND deleted_at IS NULL`, id);
 	}
 
-	async createUser(username, passwordHash) {
+	async createUser(username, passwordHash, role = 'user') {
 		const db = await this.dbPromise;
-		const res = await db.run(`INSERT INTO users (username, password_hash) VALUES (?, ?)`, username, passwordHash);
-		return db.get(`SELECT id, username, created_at FROM users WHERE id = ?`, res.lastID);
+		const res = await db.run(`INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)`, username, passwordHash, role);
+		return db.get(`SELECT id, username, role, created_at FROM users WHERE id = ?`, res.lastID);
 	}
 
-	async listVisitors() {
+	async listUsers() {
 		const db = await this.dbPromise;
+		return db.all(`
+			SELECT 
+				u.id, 
+				u.username, 
+				u.role, 
+				u.created_at,
+				COUNT(v.id) AS visitor_count
+			FROM users u
+			LEFT JOIN visitors v ON u.id = v.created_by AND v.deleted_at IS NULL
+			WHERE u.deleted_at IS NULL
+			GROUP BY u.id, u.username, u.role, u.created_at
+			ORDER BY u.created_at DESC
+		`);
+	}
+
+	async updateUserRole(userId, role) {
+		const db = await this.dbPromise;
+		if (!['admin', 'user'].includes(role)) {
+			throw new Error('Invalid role. Must be "admin" or "user"');
+		}
+		await db.run(`UPDATE users SET role = ? WHERE id = ? AND deleted_at IS NULL`, role, userId);
+		return db.get(`SELECT id, username, role, created_at FROM users WHERE id = ? AND deleted_at IS NULL`, userId);
+	}
+
+	async setUserPassword(userId, newPasswordHash) {
+		const db = await this.dbPromise;
+		await db.run(`UPDATE users SET password_hash = ? WHERE id = ? AND deleted_at IS NULL`, newPasswordHash, userId);
+		return true;
+	}
+
+	async listVisitors(userId = null, isAdmin = false) {
+		const db = await this.dbPromise;
+		let whereClause = 'v.deleted_at IS NULL';
+		if (!isAdmin && userId !== null) {
+			whereClause += ' AND v.created_by = ?';
+		}
+		const params = !isAdmin && userId !== null ? [userId] : [];
 		const rows = await db.all(`
-			SELECT v.*, (
+			SELECT v.*, 
+			u.username AS created_by_username,
+			(
 				SELECT json_group_array(json_object('id', c.id, 'type', c.type, 'value', c.value, 'label', c.label))
 				FROM contacts c WHERE c.visitor_id = v.id AND c.deleted_at IS NULL
 			) AS contacts,
@@ -204,9 +259,10 @@ export class Database {
 				FROM voices s WHERE s.visitor_id = v.id AND s.deleted_at IS NULL
 			) AS voices
 			FROM visitors v
-			WHERE v.deleted_at IS NULL
+			LEFT JOIN users u ON v.created_by = u.id
+			WHERE ${whereClause}
 			ORDER BY v.created_at DESC
-		`);
+		`, ...params);
 		return rows.map(r => ({
 			...r,
 			contacts: r.contacts ? JSON.parse(r.contacts) : [],
@@ -215,9 +271,15 @@ export class Database {
 		}));
 	}
 
-	async getVisitor(id) {
+	async getVisitor(id, userId = null, isAdmin = false) {
 		const db = await this.dbPromise;
-		const v = await db.get(`SELECT * FROM visitors WHERE id = ? AND deleted_at IS NULL`, id);
+		let whereClause = 'id = ? AND deleted_at IS NULL';
+		const params = [id];
+		if (!isAdmin && userId !== null) {
+			whereClause += ' AND created_by = ?';
+			params.push(userId);
+		}
+		const v = await db.get(`SELECT * FROM visitors WHERE ${whereClause}`, ...params);
 		if (!v) return null;
 		const contacts = await db.all(`SELECT * FROM contacts WHERE visitor_id = ? AND deleted_at IS NULL`, id);
 		const photos = await db.all(`SELECT id, filename, url, original_name AS originalName FROM photos WHERE visitor_id = ? AND deleted_at IS NULL`, id);
@@ -225,27 +287,33 @@ export class Database {
 		return { ...v, contacts, photos, voices };
 	}
 
-	async createVisitor(body) {
+	async createVisitor(body, userId = null) {
 		const { first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note, contacts = [] } = body;
 		if (!first_name || !last_name) throw new Error('first_name and last_name are required');
 		const db = await this.dbPromise;
-		const result = await db.run(`INSERT INTO visitors (first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+		const result = await db.run(`INSERT INTO visitors (first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
 			first_name, last_name, company_name || null, job_position || null, 
 			is_manufacturer ? 1 : 0, is_trader ? 1 : 0, is_distributor ? 1 : 0, 
 			field_of_activity || null, unsaturated_polyester ? 1 : 0, 
 			alkyd_resin_long ? 1 : 0, alkyd_resin_medium ? 1 : 0, alkyd_resin_short ? 1 : 0, 
-			drying_agent ? 1 : 0, answer1 || null, answer2 ? 1 : 0, answer3 || null, note || null);
+			drying_agent ? 1 : 0, answer1 || null, answer2 ? 1 : 0, answer3 || null, note || null, userId);
 		const id = result.lastID;
 		for (const c of contacts) {
 			await db.run(`INSERT INTO contacts (visitor_id, type, value, label) VALUES (?, ?, ?, ?)`, id, c.type, c.value, c.label || null);
 		}
-		return await this.getVisitor(id);
+		return await this.getVisitor(id, userId, false);
 	}
 
-	async updateVisitor(id, body) {
+	async updateVisitor(id, body, userId = null, isAdmin = false) {
 		const { first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note, contacts } = body;
 		const db = await this.dbPromise;
-		const current = await db.get(`SELECT * FROM visitors WHERE id = ?`, id);
+		let whereClause = 'id = ?';
+		const params = [id];
+		if (!isAdmin && userId !== null) {
+			whereClause += ' AND created_by = ?';
+			params.push(userId);
+		}
+		const current = await db.get(`SELECT * FROM visitors WHERE ${whereClause}`, ...params);
 		if (!current) throw new Error('Visitor not found');
 		const isManu = is_manufacturer !== undefined ? (is_manufacturer ? 1 : 0) : null;
 		const isTrad = is_trader !== undefined ? (is_trader ? 1 : 0) : null;
@@ -267,12 +335,19 @@ export class Database {
 				await db.run(`INSERT INTO contacts (visitor_id, type, value, label) VALUES (?, ?, ?, ?)`, id, c.type, c.value, c.label || null);
 			}
 		}
-		return await this.getVisitor(id);
+		return await this.getVisitor(id, userId, isAdmin);
 	}
 
-	async deleteVisitor(id) {
+	async deleteVisitor(id, userId = null, isAdmin = false) {
 		const db = await this.dbPromise;
-		await db.run(`UPDATE visitors SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`, id);
+		let whereClause = 'id = ? AND deleted_at IS NULL';
+		const params = [id];
+		if (!isAdmin && userId !== null) {
+			whereClause += ' AND created_by = ?';
+			params.push(userId);
+		}
+		const result = await db.run(`UPDATE visitors SET deleted_at = CURRENT_TIMESTAMP WHERE ${whereClause}`, ...params);
+		if (result.changes === 0) throw new Error('Visitor not found');
 		//await db.run(`UPDATE contacts SET deleted_at = CURRENT_TIMESTAMP WHERE visitor_id = ? AND deleted_at IS NULL`, id);
 		//await db.run(`UPDATE photos SET deleted_at = CURRENT_TIMESTAMP WHERE visitor_id = ? AND deleted_at IS NULL`, id);
 	}
@@ -291,6 +366,11 @@ export class Database {
 		if (!existing) throw new Error('Contact not found');
 		await db.run(`UPDATE contacts SET type = COALESCE(?, type), value = COALESCE(?, value), label = COALESCE(?, label) WHERE id = ?`, contact.type ?? null, contact.value ?? null, contact.label ?? null, contactId);
 		return await db.get(`SELECT * FROM contacts WHERE id = ?`, contactId);
+	}
+
+	async getContact(contactId) {
+		const db = await this.dbPromise;
+		return db.get(`SELECT * FROM contacts WHERE id = ? AND deleted_at IS NULL`, contactId);
 	}
 
 	async deleteContact(contactId) {
@@ -326,6 +406,11 @@ export class Database {
 		if (!v) throw new Error('Visitor not found');
 		const result = await db.run(`INSERT INTO voices (visitor_id, filename, url, mime_type, duration_ms) VALUES (?, ?, ?, ?, ?)`, visitorId, voice.filename, voice.url, voice.mimeType || null, voice.durationMs || null);
 		return await db.get(`SELECT id, filename, url, mime_type AS mimeType, duration_ms AS durationMs FROM voices WHERE id = ?`, result.lastID);
+	}
+
+	async getVoice(id) {
+		const db = await this.dbPromise;
+		return db.get(`SELECT * FROM voices WHERE id = ? AND deleted_at IS NULL`, id);
 	}
 
 	async deleteVoice(id) {

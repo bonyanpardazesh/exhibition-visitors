@@ -780,6 +780,11 @@ input[type="file"] {
 	background: rgba(219, 234, 254, 0.7) !important;
 }
 
+/* Show creator badge on row hover (admin only) */
+.visitor-row-with-creator:hover .creator-badge {
+	display: inline-block !important;
+}
+
 .table tbody td {
 	padding: var(--space-4);
 	vertical-align: top;
@@ -960,6 +965,63 @@ input[type="file"] {
 	outline-offset: 2px;
 }
 
+/* ============= MODAL ============= */
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	backdrop-filter: blur(4px);
+}
+
+.modal-content {
+	background: var(--bg-surface);
+	border-radius: var(--radius-lg);
+	padding: var(--space-6);
+	max-width: 500px;
+	width: 90%;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: var(--shadow-xl);
+}
+
+.modal-content h3 {
+	margin: 0;
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-bold);
+	color: var(--text-primary);
+}
+
+.modal-content label {
+	display: block;
+	margin-bottom: var(--space-2);
+	font-weight: var(--font-weight-medium);
+	color: var(--text-primary);
+}
+
+.modal-content select {
+	width: 100%;
+	padding: var(--space-3);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius-md);
+	font-size: var(--font-size-base);
+	background: var(--bg-surface);
+	color: var(--text-primary);
+	font-family: var(--font-family);
+}
+
+.modal-content select:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
 /* ============= PRINT STYLES ============= */
 @media print {
 	.topbar,
@@ -971,5 +1033,9 @@ input[type="file"] {
 	.card {
 		border: 1px solid #000;
 		box-shadow: none;
+	}
+	
+	.modal {
+		display: none !important;
 	}
 }
