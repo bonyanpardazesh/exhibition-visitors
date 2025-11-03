@@ -332,6 +332,12 @@ export class Database {
 		const db = await this.dbPromise;
 		await db.run(`UPDATE voices SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL`, id);
 	}
+
+	async updatePassword(userId, newPasswordHash) {
+		const db = await this.dbPromise;
+		await db.run(`UPDATE users SET password_hash = ? WHERE id = ? AND deleted_at IS NULL`, newPasswordHash, userId);
+		return true;
+	}
 }
 
 

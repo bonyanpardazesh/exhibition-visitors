@@ -260,6 +260,13 @@ p { margin-bottom: var(--space-4); }
 	height: 32px;
 	box-sizing: border-box;
 	vertical-align: middle;
+	transition: all var(--transition-fast);
+}
+
+.badge:hover {
+	background: var(--bg-hover);
+	color: var(--text-primary);
+	border-color: var(--color-primary);
 }
 
 .badge svg {

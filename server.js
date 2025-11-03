@@ -90,6 +90,43 @@ app.get('/api/me', async (req, res) => {
 	res.json(user || null);
 });
 
+app.post('/api/change-password', requireAuth, async (req, res) => {
+	try {
+		const { currentPassword, newPassword } = req.body || {};
+		if (!currentPassword || !newPassword) {
+			return res.status(400).json({ error: 'Current password and new password are required', errorKey: 'profile.missingFields' });
+		}
+		if (newPassword.length < 6) {
+			return res.status(400).json({ error: 'New password must be at least 6 characters long', errorKey: 'profile.passwordTooShort' });
+		}
+		
+		const userId = req.session.userId;
+		const userInfo = await db.getUserById(userId);
+		if (!userInfo) {
+			return res.status(404).json({ error: 'User not found', errorKey: 'profile.userNotFound' });
+		}
+		const user = await db.getUserByUsername(userInfo.username);
+		if (!user) {
+			return res.status(404).json({ error: 'User not found', errorKey: 'profile.userNotFound' });
+		}
+		
+		// Verify current password
+		const isValid = await bcrypt.compare(currentPassword, user.password_hash);
+		if (!isValid) {
+			return res.status(401).json({ error: 'Current password is incorrect', errorKey: 'profile.incorrectPassword' });
+		}
+		
+		// Hash new password
+		const newPasswordHash = await bcrypt.hash(newPassword, 10);
+		await db.updatePassword(userId, newPasswordHash);
+		
+		res.json({ success: true, message: 'Password changed successfully' });
+	} catch (e) {
+		console.error('Password change error:', e);
+		res.status(500).json({ error: e.message || 'Failed to change password', errorKey: 'profile.passwordChangeFailed' });
+	}
+});
+
 // Validation helpers
 const CONTACT_TYPES = new Set(['email','phone','address','website']);
 function isValidPhone(v){

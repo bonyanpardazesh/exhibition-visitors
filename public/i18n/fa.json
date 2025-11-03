@@ -100,5 +100,26 @@
     "invalidCredentials": "نام کاربری یا رمز عبور نامعتبر",
     "placeholderUsername": "نام کاربری خود را وارد کنید",
     "placeholderPassword": "رمز عبور خود را وارد کنید"
+  },
+  "profile": {
+    "title": "پروفایل",
+    "changePassword": "تغییر رمز عبور",
+    "changePasswordDesc": "رمز عبور حساب کاربری خود را به‌روزرسانی کنید",
+    "currentPassword": "رمز عبور فعلی",
+    "newPassword": "رمز عبور جدید",
+    "confirmPassword": "تایید رمز عبور جدید",
+    "updatePassword": "به‌روزرسانی رمز عبور",
+    "cancel": "لغو",
+    "placeholderCurrentPassword": "رمز عبور فعلی خود را وارد کنید",
+    "placeholderNewPassword": "رمز عبور جدید خود را وارد کنید",
+    "placeholderConfirmPassword": "رمز عبور جدید خود را تایید کنید",
+    "allFieldsRequired": "همه فیلدها الزامی هستند",
+    "passwordsDoNotMatch": "رمزهای عبور جدید مطابقت ندارند",
+    "passwordTooShort": "رمز عبور باید حداقل 6 کاراکتر باشد",
+    "passwordChangedSuccessfully": "رمز عبور با موفقیت تغییر کرد",
+    "passwordChangeFailed": "تغییر رمز عبور ناموفق بود",
+    "incorrectPassword": "رمز عبور فعلی اشتباه است",
+    "missingFields": "رمز عبور فعلی و جدید الزامی هستند",
+    "userNotFound": "کاربر یافت نشد"
   }
 }

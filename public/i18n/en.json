@@ -100,5 +100,26 @@
     "invalidCredentials": "Invalid username or password",
     "placeholderUsername": "Enter your username",
     "placeholderPassword": "Enter your password"
+  },
+  "profile": {
+    "title": "Profile",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Update your account password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updatePassword": "Update Password",
+    "cancel": "Cancel",
+    "placeholderCurrentPassword": "Enter your current password",
+    "placeholderNewPassword": "Enter your new password",
+    "placeholderConfirmPassword": "Confirm your new password",
+    "allFieldsRequired": "All fields are required",
+    "passwordsDoNotMatch": "New passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters long",
+    "passwordChangedSuccessfully": "Password changed successfully",
+    "passwordChangeFailed": "Failed to change password",
+    "incorrectPassword": "Current password is incorrect",
+    "missingFields": "Current password and new password are required",
+    "userNotFound": "User not found"
   }
 }
