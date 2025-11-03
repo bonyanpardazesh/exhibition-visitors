@@ -22,8 +22,20 @@ export class Database {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				first_name TEXT NOT NULL,
 				last_name TEXT NOT NULL,
-				academic_degree TEXT,
+				company_name TEXT,
 				job_position TEXT,
+				is_manufacturer INTEGER DEFAULT 0,
+				is_trader INTEGER DEFAULT 0,
+				is_distributor INTEGER DEFAULT 0,
+				field_of_activity TEXT,
+				unsaturated_polyester INTEGER DEFAULT 0,
+				alkyd_resin_long INTEGER DEFAULT 0,
+				alkyd_resin_medium INTEGER DEFAULT 0,
+				alkyd_resin_short INTEGER DEFAULT 0,
+				drying_agent INTEGER DEFAULT 0,
+				answer1 TEXT,
+				answer2 INTEGER DEFAULT 0,
+				answer3 TEXT,
 				note TEXT,
 				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -83,7 +95,80 @@ export class Database {
 			ALTER TABLE visitors ADD COLUMN academic_degree TEXT;
 		`).catch(()=>{});
 		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN company_name TEXT;
+		`).catch(()=>{});
+		// Migrate academic_degree to company_name if academic_degree exists and company_name doesn't
+		try {
+			const hasOld = await db.get(`SELECT academic_degree FROM visitors LIMIT 1`).catch(()=>null);
+			const hasNew = await db.get(`SELECT company_name FROM visitors LIMIT 1`).catch(()=>null);
+			if (hasOld !== null && hasNew === null) {
+				await db.exec(`ALTER TABLE visitors RENAME COLUMN academic_degree TO company_name`);
+			}
+		} catch(e) {
+			// If RENAME COLUMN is not supported (SQLite < 3.25.0), copy data and drop old column
+			try {
+				const hasOld = await db.get(`SELECT academic_degree FROM visitors LIMIT 1`).catch(()=>null);
+				const hasNew = await db.get(`SELECT company_name FROM visitors LIMIT 1`).catch(()=>null);
+				if (hasOld !== null && hasNew === null) {
+					await db.exec(`UPDATE visitors SET company_name = academic_degree WHERE company_name IS NULL AND academic_degree IS NOT NULL`);
+				}
+			} catch(e2) {}
+		}
+		await db.exec(`
 			ALTER TABLE visitors ADD COLUMN job_position TEXT;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN is_manufacturer INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN is_trader INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN is_distributor INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN field_of_activity TEXT;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN unsaturated_polyester INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN alkyd_resin INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN alkyd_resin_long INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN alkyd_resin_medium INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN alkyd_resin_short INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		// Migrate old alkyd_resin to alkyd_resin_long if it exists
+		try {
+			const hasOld = await db.get(`SELECT alkyd_resin FROM visitors WHERE alkyd_resin = 1 LIMIT 1`).catch(()=>null);
+			if (hasOld !== null) {
+				await db.exec(`UPDATE visitors SET alkyd_resin_long = alkyd_resin WHERE alkyd_resin = 1 AND alkyd_resin_long = 0`);
+			}
+		} catch(e) {}
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN drying_agent INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN answer1 TEXT;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN answer2 TEXT;
+		`).catch(()=>{});
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN answer2 INTEGER DEFAULT 0;
+		`).catch(()=>{});
+		// Migrate old answer2 text values to boolean (1 for any text, 0 for empty/null)
+		try {
+			await db.exec(`UPDATE visitors SET answer2 = CASE WHEN answer2 IS NOT NULL AND answer2 != '' THEN 1 ELSE 0 END WHERE typeof(answer2) = 'text'`);
+		} catch(e) {}
+		await db.exec(`
+			ALTER TABLE visitors ADD COLUMN answer3 TEXT;
 		`).catch(()=>{});
 	}
 
@@ -141,10 +226,15 @@ export class Database {
 	}
 
 	async createVisitor(body) {
-		const { first_name, last_name, academic_degree, job_position, note, contacts = [] } = body;
+		const { first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note, contacts = [] } = body;
 		if (!first_name || !last_name) throw new Error('first_name and last_name are required');
 		const db = await this.dbPromise;
-		const result = await db.run(`INSERT INTO visitors (first_name, last_name, academic_degree, job_position, note) VALUES (?, ?, ?, ?, ?)`, first_name, last_name, academic_degree || null, job_position || null, note || null);
+		const result = await db.run(`INSERT INTO visitors (first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+			first_name, last_name, company_name || null, job_position || null, 
+			is_manufacturer ? 1 : 0, is_trader ? 1 : 0, is_distributor ? 1 : 0, 
+			field_of_activity || null, unsaturated_polyester ? 1 : 0, 
+			alkyd_resin_long ? 1 : 0, alkyd_resin_medium ? 1 : 0, alkyd_resin_short ? 1 : 0, 
+			drying_agent ? 1 : 0, answer1 || null, answer2 ? 1 : 0, answer3 || null, note || null);
 		const id = result.lastID;
 		for (const c of contacts) {
 			await db.run(`INSERT INTO contacts (visitor_id, type, value, label) VALUES (?, ?, ?, ?)`, id, c.type, c.value, c.label || null);
@@ -153,11 +243,23 @@ export class Database {
 	}
 
 	async updateVisitor(id, body) {
-		const { first_name, last_name, academic_degree, job_position, note, contacts } = body;
+		const { first_name, last_name, company_name, job_position, is_manufacturer, is_trader, is_distributor, field_of_activity, unsaturated_polyester, alkyd_resin_long, alkyd_resin_medium, alkyd_resin_short, drying_agent, answer1, answer2, answer3, note, contacts } = body;
 		const db = await this.dbPromise;
 		const current = await db.get(`SELECT * FROM visitors WHERE id = ?`, id);
 		if (!current) throw new Error('Visitor not found');
-		await db.run(`UPDATE visitors SET first_name = COALESCE(?, first_name), last_name = COALESCE(?, last_name), academic_degree = COALESCE(?, academic_degree), job_position = COALESCE(?, job_position), note = COALESCE(?, note), updated_at = CURRENT_TIMESTAMP WHERE id = ?`, first_name ?? null, last_name ?? null, academic_degree ?? null, job_position ?? null, note ?? null, id);
+		const isManu = is_manufacturer !== undefined ? (is_manufacturer ? 1 : 0) : null;
+		const isTrad = is_trader !== undefined ? (is_trader ? 1 : 0) : null;
+		const isDist = is_distributor !== undefined ? (is_distributor ? 1 : 0) : null;
+		const unsatPoly = unsaturated_polyester !== undefined ? (unsaturated_polyester ? 1 : 0) : null;
+		const alkydLong = alkyd_resin_long !== undefined ? (alkyd_resin_long ? 1 : 0) : null;
+		const alkydMedium = alkyd_resin_medium !== undefined ? (alkyd_resin_medium ? 1 : 0) : null;
+		const alkydShort = alkyd_resin_short !== undefined ? (alkyd_resin_short ? 1 : 0) : null;
+		const drying = drying_agent !== undefined ? (drying_agent ? 1 : 0) : null;
+		const answer2Val = answer2 !== undefined ? (answer2 ? 1 : 0) : null;
+		await db.run(`UPDATE visitors SET first_name = COALESCE(?, first_name), last_name = COALESCE(?, last_name), company_name = COALESCE(?, company_name), job_position = COALESCE(?, job_position), is_manufacturer = COALESCE(?, is_manufacturer), is_trader = COALESCE(?, is_trader), is_distributor = COALESCE(?, is_distributor), field_of_activity = COALESCE(?, field_of_activity), unsaturated_polyester = COALESCE(?, unsaturated_polyester), alkyd_resin_long = COALESCE(?, alkyd_resin_long), alkyd_resin_medium = COALESCE(?, alkyd_resin_medium), alkyd_resin_short = COALESCE(?, alkyd_resin_short), drying_agent = COALESCE(?, drying_agent), answer1 = COALESCE(?, answer1), answer2 = COALESCE(?, answer2), answer3 = COALESCE(?, answer3), note = COALESCE(?, note), updated_at = CURRENT_TIMESTAMP WHERE id = ?`, 
+			first_name ?? null, last_name ?? null, company_name ?? null, job_position ?? null, 
+			isManu, isTrad, isDist, field_of_activity ?? null, unsatPoly, alkydLong, alkydMedium, alkydShort, drying, 
+			answer1 ?? null, answer2Val, answer3 ?? null, note ?? null, id);
 		if (Array.isArray(contacts)) {
 		// soft-delete existing contacts then insert new ones
 		await db.run(`UPDATE contacts SET deleted_at = CURRENT_TIMESTAMP WHERE visitor_id = ? AND deleted_at IS NULL`, id);

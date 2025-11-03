@@ -17,50 +17,7 @@
 				<h2 style="margin-bottom: var(--space-2);" data-i18n="visitor.title">Visitor Information</h2>
 				<p class="text-muted" style="margin: 0;" data-i18n="visitor.subtitle">Fill in the visitor details below</p>
 			</div>
-			
-			<!-- Basic Information -->
-			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
-				<div>
-					<label data-i18n="visitor.firstName">First name</label>
-					<input id="firstName" required data-placeholder="visitor.placeholderFirstName" />
-				</div>
-				<div>
-					<label data-i18n="visitor.lastName">Last name</label>
-					<input id="lastName" required data-placeholder="visitor.placeholderLastName" />
-				</div>
-			</div>
-			
-			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); margin-top: var(--space-4);">
-				<div>
-					<label data-i18n="visitor.academicDegree">Academic Degree</label>
-					<input id="academicDegree" data-placeholder="visitor.placeholderDegree" />
-				</div>
-				<div>
-					<label data-i18n="visitor.jobPosition">Job Position</label>
-					<input id="jobPosition" data-placeholder="visitor.placeholderPosition" />
-				</div>
-			</div>
-			
-			<label data-i18n="visitor.note" style="margin-top: var(--space-4);">Note</label>
-			<textarea id="note" rows="3" data-placeholder="visitor.placeholderNote"></textarea>
-			
-			<!-- Contacts Section -->
-			<section>
-				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-					<div>
-						<h3 style="margin: 0;" data-i18n="visitor.contacts">Contacts</h3>
-						<p class="text-muted" style="margin: var(--space-1) 0 0 0; font-size: var(--font-size-sm);" data-i18n="visitor.contactsDesc">Add contact information</p>
-					</div>
-					<button type="button" id="addContactBtn" class="btn btn-secondary">
-						<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-							<path d="M12 4v16m8-8H4"/>
-						</svg>
-						<span data-i18n="visitor.addContact">Add Contact</span>
-					</button>
-				</div>
-				<div id="contacts"></div>
-			</section>
-			
+
 			<!-- Voice Recording Section -->
 			<section>
 				<div style="margin-bottom: var(--space-4);">
@@ -104,6 +61,130 @@
 				<div id="voiceList" class="voice-list" style="margin-top:var(--space-4);"></div>
 			</section>
 			
+			<!-- Basic Information -->
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
+				<div>
+					<label data-i18n="visitor.firstName">First name</label>
+					<input id="firstName" required data-placeholder="visitor.placeholderFirstName" />
+				</div>
+				<div>
+					<label data-i18n="visitor.lastName">Last name</label>
+					<input id="lastName" required data-placeholder="visitor.placeholderLastName" />
+				</div>
+			</div>
+			
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); margin-top: var(--space-4);">
+				<div>
+					<label data-i18n="visitor.academicDegree">Company Name</label>
+					<input id="companyName" data-placeholder="visitor.placeholderDegree" />
+				</div>
+				<div>
+					<label data-i18n="visitor.jobPosition">Job Position</label>
+					<input id="jobPosition" data-placeholder="visitor.placeholderPosition" />
+				</div>
+			</div>
+			
+			<!-- Business Type and Field of Activity -->
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); margin-top: var(--space-4);">
+				<div>
+					<label data-i18n="visitor.businessType">Business Type</label>
+					<div style="display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-2);">
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							<input type="checkbox" id="isManufacturer" />
+							<span data-i18n="visitor.manufacturer">Manufacturer</span>
+						</label>
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							<input type="checkbox" id="isTrader" />
+							<span data-i18n="visitor.trader">Trader</span>
+						</label>
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							<input type="checkbox" id="isDistributor" />
+							<span data-i18n="visitor.distributor">Distributor</span>
+						</label>
+					</div>
+				</div>
+				<div>
+					<label data-i18n="visitor.fieldOfActivity">Field of Activity</label>
+					<input id="fieldOfActivity" data-placeholder="visitor.placeholderFieldOfActivity" />
+				</div>
+			</div>
+			
+			<!-- Product Type Checkboxes -->
+			<div style="margin-top: var(--space-4);">
+				<label data-i18n="visitor.productType">Product Type</label>
+				<div style="display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-2);">
+					<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+						<input type="checkbox" id="unsaturatedPolyester" />
+						<span data-i18n="visitor.unsaturatedPolyester">Unsaturated Polyester</span>
+					</label>
+					<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+						<input type="checkbox" id="dryingAgent" />
+						<span data-i18n="visitor.dryingAgent">Drying Agent</span>
+					</label>
+					<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+						<input type="checkbox" id="alkydResin" />
+						<span data-i18n="visitor.alkydResin">Alkyd Resin</span>
+					</label>
+					<div id="alkydResinOptions" style="display: none; align-items: center; gap: var(--space-4);">
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							<input type="checkbox" id="alkydResin_Long" />
+							<span data-i18n="visitor.alkydResin_Long">Alkyd Resin : Long</span>
+						</label>
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							<input type="checkbox" id="alkydResin_Medium" />
+							<span data-i18n="visitor.alkydResin_Medium">Medium</span>
+						</label>
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							<input type="checkbox" id="alkydResin_Short" />
+							<span data-i18n="visitor.alkydResin_Short">Short</span>
+						</label>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Questions Section -->
+			<div style="margin-top: var(--space-4);">
+				<div style="display: grid; gap: var(--space-4);">
+					<div>
+						<label data-i18n="visitor.question1">Question 1</label>
+						<input id="answer1" data-placeholder="visitor.placeholderAnswer1" />
+					</div>
+					<div>
+						<label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+							
+							<span data-i18n="visitor.question2">Question 2</span>
+							<input type="checkbox" id="answer2" />
+						</label>
+					</div>
+					<div id="question3Container" style="display: none;">
+						<label data-i18n="visitor.question3">Question 3</label>
+						<input id="answer3" data-placeholder="visitor.placeholderAnswer3" />
+					</div>
+				</div>
+			</div>
+			
+			<label data-i18n="visitor.note" style="margin-top: var(--space-4);">Note</label>
+			<textarea id="note" rows="3" data-placeholder="visitor.placeholderNote"></textarea>
+			
+			<!-- Contacts Section -->
+			<section>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+					<div>
+						<h3 style="margin: 0;" data-i18n="visitor.contacts">Contacts</h3>
+						<p class="text-muted" style="margin: var(--space-1) 0 0 0; font-size: var(--font-size-sm);" data-i18n="visitor.contactsDesc">Add contact information</p>
+					</div>
+					<button type="button" id="addContactBtn" class="btn btn-secondary">
+						<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+							<path d="M12 4v16m8-8H4"/>
+						</svg>
+						<span data-i18n="visitor.addContact">Add Contact</span>
+					</button>
+				</div>
+				<div id="contacts"></div>
+			</section>
+			
+			
+			
 			<!-- Photos Section -->
 			<section>
 				<div style="margin-bottom: var(--space-4);">
@@ -117,7 +198,7 @@
 					<div class="text-secondary" style="font-weight: var(--font-weight-medium);" data-i18n="visitor.placeholderPhotoUpload">Click to upload photos</div>
 					<div class="text-muted" style="font-size: var(--font-size-xs); margin-top: var(--space-1);" data-i18n="visitor.placeholderPhotoFormat">PNG, JPG up to 10MB</div>
 				</label>
-				<input type="file" id="photoInput" multiple accept="image/*" style="display: none;" />
+				<input type="file" id="photoInput" capture="environment" multiple accept="image/*" style="display: none;" />
 				<div id="photoPreview" class="photos"></div>
 			</section>
 			

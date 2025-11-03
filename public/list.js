@@ -16,13 +16,20 @@ function renderRow(v) {
     }).join('');
     const photos = (v.photos||[]).slice(0,3).map(p=>`<img src="${p.url}" alt="${p.originalName||''}" style="width:40px;height:40px;object-fit:cover;border-radius:var(--radius-md);border:2px solid var(--border-color);margin-right:var(--space-1);" />`).join('');
     const photoCount = v.photos.length > 3 ? `<span class="text-muted" style="font-size: var(--font-size-xs);">+${v.photos.length - 3} more</span>` : '';
+    const businessTypes = [];
+    if (v.is_manufacturer === 1) businessTypes.push('Manufacturer');
+    if (v.is_trader === 1) businessTypes.push('Trader');
+    if (v.is_distributor === 1) businessTypes.push('Distributor');
+    const businessTypeDisplay = businessTypes.length > 0 ? businessTypes.join(', ') : '-';
     tr.innerHTML = `
         <td>
             <div style="font-weight:var(--font-weight-semibold); color: var(--text-primary);">${v.first_name} ${v.last_name}</div>
             ${v.note ? `<div class="text-muted" style="margin-top: var(--space-1); font-size: var(--font-size-sm);">${v.note}</div>` : ''}
         </td>
-        <td><span class="text-secondary">${v.academic_degree || '-'}</span></td>
+        <td><span class="text-secondary">${v.company_name || '-'}</span></td>
         <td><span class="text-secondary">${v.job_position || '-'}</span></td>
+        <td><span class="text-secondary">${businessTypeDisplay}</span></td>
+        <td><span class="text-secondary">${v.field_of_activity || '-'}</span></td>
         <td><div class="contacts-container">${contacts || '<span class="text-muted">-</span>'}</div></td>
         <td><div style="display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap;">${photos}${photoCount}</div></td>
         <td>
@@ -62,8 +69,8 @@ async function exportToExcel() {
 		// Get current language for headers
 		const lang = localStorage.getItem('lang') || 'en';
 		const headers = {
-			en: ['Name', 'Academic Degree', 'Job Position', 'Email', 'Phone', 'Address', 'Website', 'Note', 'Photos Count'],
-			fa: ['نام', 'مدرک تحصیلی', 'سمت شغلی', 'ایمیل', 'تلفن', 'آدرس', 'وب‌سایت', 'یادداشت', 'تعداد عکس']
+			en: ['Name', 'Company Name', 'Job Position', 'Business Type', 'Field of Activity', 'Email', 'Phone', 'Address', 'Website', 'Note', 'Photos Count'],
+			fa: ['نام', 'نام شرکت', 'سمت شغلی', 'نوع کسب‌وکار', 'حوزه فعالیت', 'ایمیل', 'تلفن', 'آدرس', 'وب‌سایت', 'یادداشت', 'تعداد عکس']
 		};
 		const headerRow = headers[lang] || headers.en;
 
@@ -85,10 +92,18 @@ async function exportToExcel() {
 				return (contacts[type] || []).join('; ');
 			};
 
+			const businessTypes = [];
+			if (v.is_manufacturer === 1) businessTypes.push('Manufacturer');
+			if (v.is_trader === 1) businessTypes.push('Trader');
+			if (v.is_distributor === 1) businessTypes.push('Distributor');
+			const businessTypeExport = businessTypes.join('; ') || '';
+			
 			const row = [
 				`${v.first_name || ''} ${v.last_name || ''}`.trim(),
-				v.academic_degree || '',
+				v.company_name || '',
 				v.job_position || '',
+				businessTypeExport,
+				v.field_of_activity || '',
 				formatContacts('email'),
 				formatContacts('phone'),
 				formatContacts('address'),
@@ -105,8 +120,10 @@ async function exportToExcel() {
 		// Set column widths
 		const colWidths = [
 			{ wch: 20 }, // Name
-			{ wch: 18 }, // Academic Degree
+			{ wch: 18 }, // Company Name
 			{ wch: 18 }, // Job Position
+			{ wch: 20 }, // Business Type
+			{ wch: 25 }, // Field of Activity
 			{ wch: 25 }, // Email
 			{ wch: 15 }, // Phone
 			{ wch: 30 }, // Address
@@ -184,7 +201,7 @@ async function load() {
 		console.error('Failed to load visitors:', error);
 		if (loader) loader.classList.add('hidden');
 		if (table) table.style.display = '';
-		container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">Failed to load data. Please refresh the page.</td></tr>';
+		container.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">Failed to load data. Please refresh the page.</td></tr>';
 	}
 }
 

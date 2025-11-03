@@ -54,8 +54,23 @@ const dom = {
 	id: document.getElementById('visitorId'),
 	firstName: document.getElementById('firstName'),
 	lastName: document.getElementById('lastName'),
-	academicDegree: document.getElementById('academicDegree'),
+	companyName: document.getElementById('companyName'),
 	jobPosition: document.getElementById('jobPosition'),
+	isManufacturer: document.getElementById('isManufacturer'),
+	isTrader: document.getElementById('isTrader'),
+	isDistributor: document.getElementById('isDistributor'),
+	fieldOfActivity: document.getElementById('fieldOfActivity'),
+	unsaturatedPolyester: document.getElementById('unsaturatedPolyester'),
+	alkydResin: document.getElementById('alkydResin'),
+	alkydResinOptions: document.getElementById('alkydResinOptions'),
+	alkydResinLong: document.getElementById('alkydResin_Long'),
+	alkydResinMedium: document.getElementById('alkydResin_Medium'),
+	alkydResinShort: document.getElementById('alkydResin_Short'),
+	dryingAgent: document.getElementById('dryingAgent'),
+	answer1: document.getElementById('answer1'),
+	answer2: document.getElementById('answer2'),
+	answer3: document.getElementById('answer3'),
+	question3Container: document.getElementById('question3Container'),
 	note: document.getElementById('note'),
 	contacts: document.getElementById('contacts'),
 	addContactBtn: document.getElementById('addContactBtn'),
@@ -165,8 +180,24 @@ async function loadVisitor(id) {
 	dom.id.value = v.id;
 	dom.firstName.value = v.first_name;
 	dom.lastName.value = v.last_name;
-	dom.academicDegree.value = v.academic_degree || '';
+	dom.companyName.value = v.company_name || '';
 	dom.jobPosition.value = v.job_position || '';
+	dom.isManufacturer.checked = v.is_manufacturer === 1;
+	dom.isTrader.checked = v.is_trader === 1;
+	dom.isDistributor.checked = v.is_distributor === 1;
+	dom.fieldOfActivity.value = v.field_of_activity || '';
+	dom.unsaturatedPolyester.checked = v.unsaturated_polyester === 1;
+	dom.alkydResin.checked = (v.alkyd_resin_long === 1 || v.alkyd_resin_medium === 1 || v.alkyd_resin_short === 1);
+	dom.alkydResinLong.checked = v.alkyd_resin_long === 1;
+	dom.alkydResinMedium.checked = v.alkyd_resin_medium === 1;
+	dom.alkydResinShort.checked = v.alkyd_resin_short === 1;
+	dom.alkydResinOptions.style.display = dom.alkydResin.checked ? 'flex' : 'none';
+	dom.dryingAgent.checked = v.drying_agent === 1;
+	dom.answer1.value = v.answer1 || '';
+	dom.answer2.checked = v.answer2 === 1 || v.answer2 === '1' || v.answer2 === true;
+	dom.answer3.value = v.answer3 || '';
+	// Show/hide question3 based on answer2 checkbox
+	dom.question3Container.style.display = dom.answer2.checked ? 'block' : 'none';
 	dom.note.value = v.note || '';
 	dom.contacts.innerHTML = '';
 	(v.contacts||[]).forEach(c => {
@@ -223,8 +254,20 @@ dom.form.onsubmit = async (e) => {
 	const payload = {
 		first_name: dom.firstName.value.trim(),
 		last_name: dom.lastName.value.trim(),
-		academic_degree: dom.academicDegree.value.trim() || null,
+		company_name: dom.companyName.value.trim() || null,
 		job_position: dom.jobPosition.value.trim() || null,
+		is_manufacturer: dom.isManufacturer.checked,
+		is_trader: dom.isTrader.checked,
+		is_distributor: dom.isDistributor.checked,
+		field_of_activity: dom.fieldOfActivity.value.trim() || null,
+		unsaturated_polyester: dom.unsaturatedPolyester.checked,
+		alkyd_resin_long: dom.alkydResinLong.checked,
+		alkyd_resin_medium: dom.alkydResinMedium.checked,
+		alkyd_resin_short: dom.alkydResinShort.checked,
+		drying_agent: dom.dryingAgent.checked,
+		answer1: dom.answer1.value.trim() || null,
+		answer2: dom.answer2.checked,
+		answer3: dom.answer2.checked ? (dom.answer3.value.trim() || null) : null,
 		note: dom.note.value.trim() || null,
 		contacts: getContacts()
 	};
@@ -408,5 +451,23 @@ if (vrSaveEl) vrSaveEl.addEventListener('click', async () => {
 });
 
 updateVrButtons('idle');
+
+// Handle question2 checkbox to show/hide question3
+dom.answer2.addEventListener('change', () => {
+	dom.question3Container.style.display = dom.answer2.checked ? 'block' : 'none';
+	if (!dom.answer2.checked) {
+		dom.answer3.value = '';
+	}
+});
+
+// Handle Alkyd Resin checkbox to show/hide Long/Medium/Short options
+dom.alkydResin.addEventListener('change', () => {
+	dom.alkydResinOptions.style.display = dom.alkydResin.checked ? 'flex' : 'none';
+	if (!dom.alkydResin.checked) {
+		dom.alkydResinLong.checked = false;
+		dom.alkydResinMedium.checked = false;
+		dom.alkydResinShort.checked = false;
+	}
+});
 
 
